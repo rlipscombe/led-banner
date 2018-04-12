@@ -7,7 +7,7 @@
 // Rather than store an 8-pixel high font in the squirrel, we'll
 // use 'figlet' to create our pixel matrix:
 //
-//   figlet -w 100 -f letter 'Hello World!  ' | curl -X POST -d @- $AGENT_URL
+//   figlet -w 100 -f letter 'Hello World!  ' | curl -X POST --data-binary @- $AGENT_URL
 //
 // You can find extra fonts at github:cmatsuoka/figlet-fonts; the 'sans'
 // font below is from there, in the 'bdffonts' directory.
