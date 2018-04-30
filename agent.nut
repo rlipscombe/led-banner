@@ -17,7 +17,8 @@
 
 /*
 figlet -w 1000 -f sans 'Hello World!  ' | \
-  awk 'flag {print} flag == 0 {if(NF) {flag=1; print}}' | \
+  awk 'flag {print} flag == 0 {if(NF) {flag=1; print}}' | tac | \
+  awk 'flag {print} flag == 0 {if(NF) {flag=1; print}}' | tac | \
   head -n 8 | tee /dev/stderr | \
   curl -s -X POST $AGENT_URL --data-binary @-
 */
