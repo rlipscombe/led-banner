@@ -24,3 +24,10 @@ excessive padding:
         awk 'flag {print} flag == 0 {if(NF) {flag=1; print}}' | tac | \
         head -n 8 | tee /dev/stderr | \
         curl -s -X POST $AGENT_URL --data-binary @-
+
+## Using impt
+
+You can use impt to manage your devices. You need to link the project with
+your impCentral device group:
+
+    impt project link --dg $DEVICE_GROUP_UUID
