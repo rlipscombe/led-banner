@@ -29,7 +29,8 @@ excessive padding:
 
 **Note:** The above is handled by the `write.sh` script:
 
-    ./write.sh $AGENT_URL sans 'Hello World!  '
+    FONTS_DIR=~/src/cmatsuoka/figlet-fonts      # e.g.
+    ./write.sh $AGENT_URL $FONTS_DIR/bdffonts/sans 'Hello World!  '
 
 ## Using impt
 
