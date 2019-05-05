@@ -27,6 +27,10 @@ excessive padding:
         head -n 8 | tee /dev/stderr | \
         curl -s -X POST $AGENT_URL --data-binary @-
 
+**Note:** The above is handled by the `write.sh` script:
+
+    ./write.sh $AGENT_URL sans 'Hello World!  '
+
 ## Using impt
 
 You can use impt to manage your devices. You need to link the project with
