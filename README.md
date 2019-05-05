@@ -2,7 +2,7 @@
 
 Squirrel source code for Electric Imp-powered, WS2812 LED banner
 
-## Overview:
+## Overview
 
 We want to take a string, such as 'Happy Birthday!', and convert it into
 something suitable for feeding to the LED banner.
@@ -12,6 +12,8 @@ to create our pixel matrix:
 
     figlet -w 100 -f letter 'Hello World!  ' | \
         curl -X POST --data-binary @- $AGENT_URL
+
+## Extra fonts
 
 You can find extra fonts at github:cmatsuoka/figlet-fonts; the 'sans' font
 below is from there, in the 'bdffonts' directory.
