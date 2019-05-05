@@ -7,7 +7,7 @@
 // Rather than store an 8-pixel high font in the squirrel, we'll
 // use 'figlet' to create our pixel matrix:
 //
-//   figlet -w 100 -f letter 'Hello World!  ' | curl -X POST --data-binary @- $AGENT_URL
+//   figlet -w 100 -f letter 'Hello World!  ' | curl -X POST -d @- $AGENT_URL
 //
 // You can find extra fonts at github:cmatsuoka/figlet-fonts; the 'sans'
 // font below is from there, in the 'bdffonts' directory.
@@ -25,13 +25,21 @@ figlet -w 1000 -f sans 'Hello World!  ' | \
 
 #require "rocky.class.nut:2.0.1"
 
-CurrentMessage <- 
-"#  #      # #        #  #  #          #    # #     \n" +
-"#  #      # #        #  #  #          #    # #     \n" +
-"####  ##  # #  ##     ## ##   ##  ### #  ### #     \n" +
-"#  # #### # # #  #    ## ##  #  # #   # #  # #     \n" +
-"#  # #    # # #  #    ## ##  #  # #   # #  #       \n" +
-"#  #  ### # #  ##     ## ##   ##  #   #  ### #     ";
+// The message must be a multiple of 8 columns wide,
+// in order for the palette to line up properly.
+// This example is 48 columns.
+// For other messages, device squirrel does it.
+CurrentMessage <-
+"#  #      # #        #  #  #          #    # #  \n" +
+"#  #      # #        #  #  #          #    # #  \n" +
+"####  ##  # #  ##     ## ##   ##  ### #  ### #  \n" +
+"#  # #### # # #  #    ## ##  #  # #   # #  # #  \n" +
+"#  # #    # # #  #    ## ##  #  # #   # #  #    \n" +
+"#  #  ### # #  ##     ## ##   ##  #   #  ### #  ";
+/*
+          1         2         3         4       4 5
+ 12345678901234567890123456789012345678901234567890
+ */
 
 function postHome(context) {
     local message = context.req.rawbody;

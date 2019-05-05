@@ -1,6 +1,7 @@
 #require "WS2812.class.nut:3.0.0"
 
 server.log("Device ID:      " + hardware.getdeviceid());
+server.log("Imp Type:       " + imp.info().type);
 server.log("Improm Version: " + imp.getsoftwareversion());
 
 Width <- 32;
@@ -35,44 +36,11 @@ Pink <- [32, 0, 16];
 Palette <- [Red, Orange, Yellow, Green, Cyan, Blue, Magenta, Pink];
 PaletteLength <- Palette.len();
 
-function getColour(x, y, offset, v) {
-    //return toBool(v) ? Blue : Black;
-    return getRainbowColour(x, y, offset, v);
-    //return getStripyColour(x, y, offset, v);
-    //return getFlashyColour(x, y, offset, v);
-}
-
-function getStripyColour(x, y, offset, v) {
+function getColour(x, y, offset, v, len) {
     local t = toBool(v);
     if (t) {
-        if (y < 4) {
-            return Blue;
-        }
-        else {
-            return Yellow;
-        }
-    }
-    else {
-        return Black;
-    }
-}
-
-function getFlashyColour(x, y, offset, v) {
-    local t = toBool(v);
-    if (t) {
-        return Palette[offset % PaletteLength];
-    }
-    else {
-        return Black;
-    }
-}
-
-function getRainbowColour(x, y, offset, v) {
-    // We might want different colours for each letter, but for now
-    // a boolean is fine.
-    local t = toBool(v);
-    if (t) {
-        return Palette[(x + y + offset) % PaletteLength];
+        local p = (x + offset + y);
+        return Palette[p % PaletteLength];
     }
     else {
         return Black;
@@ -92,7 +60,7 @@ function clearMessage() {
         imp.cancelwakeup(SCROLLER);
         SCROLLER <- null;
     }
-    
+
     pixels.fill(Black);
 }
 
@@ -107,7 +75,7 @@ function showMessage(rows, offset) {
 
         for (local c = 0; c < Width; ++c ) {
             local v = getValue(row, c + offset);
-            local colour = getColour(c, r, offset, v);
+            local colour = getColour(c, r, offset, v, row.len());
             local index = getIndex(c, r);
             pixels.set(index, colour);
         }
@@ -121,10 +89,10 @@ ScrollInterval <- 0.0;
 function scrollMessage(rows, offset, maxOffset) {
     showMessage(rows, offset);
     ++offset;
-    if (offset > maxOffset) {
+    if (offset >= maxOffset) {
         offset = 0;
     }
-    SCROLLER <- imp.wakeup(ScrollInterval, function() { 
+    SCROLLER <- imp.wakeup(ScrollInterval, function() {
         scrollMessage(rows, offset, maxOffset);
     });
 }
@@ -139,9 +107,9 @@ function verticalAlign(rows) {
     for (local i = 0; i < pad; ++i) {
         result.append(array(width));
     }
-    
+
     result.extend(rows);
-    
+
     // Ensure there are enough vertical rows.
     while (result.len() < Height) {
         // Add a row to the bottom.
@@ -152,10 +120,35 @@ function verticalAlign(rows) {
     return result.slice(0, Height);
 }
 
+function roundUp(n, to) {
+    local x = (n % to);
+    if (x == 0) {
+        return n;
+    }
+
+    return n + (to - x);
+}
+
+function padRow(row, width) {
+    local pad = width - row.len();
+    for (local i = 0; i < pad; ++i) {
+        row += " ";
+    }
+
+    return row;
+}
+
+function padRows(rows) {
+    local width = rows.map(function(v) { return v.len(); }).reduce(function(a, b) { return (a > b) ? a : b; });
+    width = roundUp(width, 8);
+    return rows.map(function(r) { return padRow(r, width); });
+}
+
 function startMessage(message) {
     local rows = split(message, "\n");
+    rows = padRows(rows);
     rows = verticalAlign(rows);
-    
+
     local maxOffset = rows[0].len();
     scrollMessage(rows, 0, maxOffset);
 }
