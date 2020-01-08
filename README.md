@@ -39,3 +39,5 @@ You can use impt to manage your devices. You need to link the project with
 your impCentral device group:
 
     impt project link --dg $DEVICE_GROUP_UUID
+
+    impt build run --log
