@@ -5,7 +5,7 @@ Pattern <- null;
 function postHome(context) {
     local message = context.req.rawbody;
     server.log(message);
-    Pattern = renderText(message + "      ", asciiTo5x8, Cyan, Black);
+    Pattern = renderText(message + "      ", asciiTo5x8, 7, 0);
     device.send("pattern", Pattern);
     context.send(202, "Accepted\n");
 }
@@ -15,8 +15,6 @@ server.log(http.agenturl());
 app <- Rocky();
 app.post("/", postHome);
 
-@include "lib/rainbow.lib.nut"
-@include "lib/palette.lib.nut"
 @include "lib/colourise.lib.nut"
 @include "lib/font-5x8.lib.nut"
 
@@ -66,18 +64,46 @@ function renderText(message, font, fg, bg) {
     return pattern;
 }
 
-function padHeight(array) {
+// Ensure that there are 8 rows, and that they're all the same length.
+function pad(array) {
     while (array.len() < 8) {
         array.push([]);
+    }
+
+    local maxLength = 0;
+    for (local i = 0; i < 8; ++i) {
+        if (array[i].len() > maxLength) {
+            maxLength = array[i].len();
+        }
+    }
+
+    for (local i = 0; i < 8; ++i) {
+        while (array[i].len() < maxLength) {
+            array[i].push(0);
+        }
     }
 
     return array;
 }
 
-//Pattern <- generateRainbowPattern(Width, Height, Palette);
 //Pattern <- renderText("Hello World!" + "      ", asciiTo5x8, Smoke, Black);
-Pattern <- colourise(padHeight(@{include('patterns/default.txt') | to_array}), Smoke, Black);
+server.log("Memory Free: " + imp.getmemoryfree());
+Pattern <- pad(colourise(@{include('patterns/default.txt') | to_array}, 7, 0));
+server.log("Memory Free: " + imp.getmemoryfree());
 
 device.onconnect(function() {
     device.send("pattern", Pattern);
 });
+
+/*
+// At some point, this image blob will be sent from the agent.
+// It's in the same zig-zag format as the panel.
+ImageWidth <- 32;
+ImageHeight <- 8;
+
+// We use 4bpp colours, so there are two pixels per byte.
+_image <- blob(ImageWidth * ImageHeight / 2);
+for (local i = 0; i < _image.len(); ++i) {
+    _image.writen((3 << 4) | 5, 'b');    // Olive|Silver
+//    _image.writen((6 << 4) | 7, 'b');    // Teal|Silver
+}*/
