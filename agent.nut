@@ -10,10 +10,21 @@ function postHome(context) {
     context.send(202, "Accepted\n");
 }
 
+function postWhatsApp(context) {
+    local message = context.req.body["Body"];
+    local from = context.req.body["From"];
+    server.log("Received message \"" + message + "\" from " + from);
+    Pattern = renderText(message + "      ", asciiTo5x8, 7, 0);
+    device.send("pattern", Pattern);
+    context.setHeader("content-type", "text/xml");
+    context.send(200, "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response></Response>");
+}
+
 server.log(http.agenturl());
 
 app <- Rocky();
 app.post("/", postHome);
+app.post("/whatsapp", postWhatsApp);
 
 @include "lib/colourise.lib.nut"
 @include "lib/font-5x8.lib.nut"
