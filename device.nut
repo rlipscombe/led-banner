@@ -1,4 +1,4 @@
-#require "WS2812.class.nut:3.0.0"
+@include "github:rlipscombe/WS2812/WS2812.class.nut"
 
 server.log("Device ID:      " + hardware.getdeviceid());
 server.log("Imp Type:       " + imp.info().type);
