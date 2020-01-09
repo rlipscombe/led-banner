@@ -1,4 +1,4 @@
-@include "github:rlipscombe/WS2812/WS2812.class.nut"
+@include "github:rlipscombe/WS2812/WS2812.class.nut@rl/lazy-cache-bits"
 
 server.log("Device ID:      " + hardware.getdeviceid());
 server.log("Imp Type:       " + imp.info().type);
