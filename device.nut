@@ -3,6 +3,7 @@
 server.log("Device ID:      " + hardware.getdeviceid());
 server.log("Imp Type:       " + imp.info().type);
 server.log("Improm Version: " + imp.getsoftwareversion());
+server.log("Memory Free:    " + imp.getmemoryfree());
 
 Width <- 32;
 Height <- 8;
