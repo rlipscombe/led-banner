@@ -6,7 +6,17 @@ server.log("Improm Version: " + imp.getsoftwareversion());
 
 Width <- 32;
 Height <- 8;
-Count <- (Width * Height) + 1;  // 1 extra for the impExplorer.
+Offset <- 1;    // 1 extra for the impExplorer.
+Count <- (Width * Height) + Offset;
+
+Black <- [0, 0, 0];
+
+// Note: 32 x 8 x 60mA is 1.5A. You'll need a beefy power supply.
+// I've got a 2.5A PSU and it can't cope with white at more than about 30% brightness.
+
+function reduceBrightness(colour) {
+    return [colour[0] >> 1, colour[1] >> 1, colour[2] >> 1];
+}
 
 // 5v power on the impExplorer is gated; we need to enable pin 1.
 hardware.pin1.configure(DIGITAL_OUT, 1);
@@ -14,69 +24,33 @@ hardware.pin1.configure(DIGITAL_OUT, 1);
 spi <- hardware.spi257;
 pixels <- WS2812(spi, Count);
 
-function toBool(v) {
-    if (v && v != ' ') {
-        return true;
-    }
-    else {
-        return false;
-    }
+// The LED banner is formatted as a zig-zag strip:
+//
+// 2389
+// 147.
+// 056.
+function getPixelIndex(x, y) {
+    local c = x * Height;
+    local r = (x % 2) ? ((Height - 1) - y) : y;
+    return Offset + c + r;
 }
 
-Black <- [0, 0, 0];
-Red <- [32, 0, 0];
-Orange <- [32, 4, 0];
-Yellow <- [32, 24, 0];
-Green <- [0, 32, 0];
-Cyan <- [0, 32, 18];
-Blue <- [0, 4, 32];
-Magenta <- [24, 0, 32];
-Pink <- [32, 0, 16];
-
-Palette <- [Red, Orange, Yellow, Green, Cyan, Blue, Magenta, Pink];
-PaletteLength <- Palette.len();
-
-function getColour(x, y, offset, v, len) {
-    local t = toBool(v);
-    if (t) {
-        local p = (x + offset + y);
-        return Palette[p % PaletteLength];
+function getPatternColour(pattern, x, y, dx, length) {
+    local row = pattern[y];
+    local c = (x + dx) % length;
+    if (c < row.len()) {
+        return row[c];
     }
     else {
         return Black;
     }
 }
 
-function getIndex(x, y) {
-    local c = x * Height;
-    local r = (x % 2) ? ((Height - 1) - y) : y;
-    return 1 + c + r;
-}
-
-SCROLLER <- null;
-
-function clearMessage() {
-    if (SCROLLER) {
-        imp.cancelwakeup(SCROLLER);
-        SCROLLER <- null;
-    }
-
-    pixels.fill(Black);
-}
-
-function getValue(row, c) {
-    local n = c % row.len();
-    return row[n];
-}
-
-function showMessage(rows, offset) {
-    for (local r = 0; r < Height; ++r) {
-        local row = rows[r];
-
-        for (local c = 0; c < Width; ++c ) {
-            local v = getValue(row, c + offset);
-            local colour = getColour(c, r, offset, v, row.len());
-            local index = getIndex(c, r);
+function showPattern(pattern, length, scroll) {
+    for (local c = 0; c < Width; ++c) {
+        for (local r = 0; r < Height; ++r) {
+            local index = getPixelIndex(c, r);
+            local colour = getPatternColour(pattern, c, r, scroll, length);
             pixels.set(index, colour);
         }
     }
@@ -84,76 +58,73 @@ function showMessage(rows, offset) {
     pixels.draw();
 }
 
+// It's pretty slow already; we don't need to delay it any more.
 ScrollInterval <- 0.0;
+ScrollTimer <- null;
 
-function scrollMessage(rows, offset, maxOffset) {
-    showMessage(rows, offset);
-    ++offset;
-    if (offset >= maxOffset) {
-        offset = 0;
+function scrollPattern(pattern, length, scroll, maxScroll) {
+    showPattern(pattern, length, scroll);
+
+    // Scroll the viewport to the right
+    ++scroll;
+    // ...avoiding integer overflows.
+    if (scroll >= maxScroll) {
+        scroll = 0;
     }
-    SCROLLER <- imp.wakeup(ScrollInterval, function() {
-        scrollMessage(rows, offset, maxOffset);
+
+    ScrollTimer <- imp.wakeup(ScrollInterval, function() {
+        scrollPattern(pattern, length, scroll, maxScroll);
     });
 }
 
-function verticalAlign(rows) {
-    local width = rows[0].len();
+function getPatternLength(pattern) {
+    local length = pattern
+        .map(function(v) { return v.len(); })
+        .reduce(function(a, b) { return (a > b) ? a : b; });
+    return length;
+}
 
-    // We need to ensure that there are enough vertical rows,
-    // and that the content is centred vertically.
-    local pad = (Height - rows.len()) / 2;
-    local result = [];
-    for (local i = 0; i < pad; ++i) {
-        result.append(array(width));
+function startPattern(pattern) {
+    local length = getPatternLength(pattern);
+    local maxScroll = length;
+    if (maxScroll < Width) {
+        maxScroll = Width;
     }
 
-    result.extend(rows);
+    scrollPattern(pattern, length, 0, maxScroll);
+}
 
-    // Ensure there are enough vertical rows.
-    while (result.len() < Height) {
-        // Add a row to the bottom.
-        result.append(array(width));
+function clearPattern() {
+    if (ScrollTimer) {
+        imp.cancelwakeup(ScrollTimer);
+        ScrollTimer <- null;
     }
 
-    // If the text is too tall, too bad.
-    return result.slice(0, Height);
+    pixels.fill(Black);
 }
 
-function roundUp(n, to) {
-    local x = (n % to);
-    if (x == 0) {
-        return n;
+function logPattern(pattern) {
+    for (local r = 0; r < pattern.len(); ++r) {
+        local row = pattern[r];
+        local log = "";
+        for (local c = 0; c < row.len(); ++c) {
+            local v = row[c];
+            local x = v[0] + v[1] + v[2];
+            if (x != 0) {
+                log += "X";
+            }
+            else {
+                log += " ";
+            }
+        }
+        server.log(log);
     }
-
-    return n + (to - x);
 }
 
-function padRow(row, width) {
-    local pad = width - row.len();
-    for (local i = 0; i < pad; ++i) {
-        row += " ";
-    }
-
-    return row;
-}
-
-function padRows(rows) {
-    local width = rows.map(function(v) { return v.len(); }).reduce(function(a, b) { return (a > b) ? a : b; });
-    width = roundUp(width, 8);
-    return rows.map(function(r) { return padRow(r, width); });
-}
-
-function startMessage(message) {
-    local rows = split(message, "\n");
-    rows = padRows(rows);
-    rows = verticalAlign(rows);
-
-    local maxOffset = rows[0].len();
-    scrollMessage(rows, 0, maxOffset);
-}
-
-agent.on("message", function(message) {
-    clearMessage();
-    startMessage(message);
+agent.on("pattern", function(pattern) {
+    //logPattern(pattern);
+    clearPattern();
+    startPattern(pattern);
 });
+
+clearPattern();
