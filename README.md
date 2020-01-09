@@ -3,7 +3,7 @@
 Squirrel source code for Electric Imp-powered, WS2812 LED banner
 
     source .env     # set AGENT_URL
-    curl -X POST $AGENT_URL 'Hello World!  '
+    curl -X POST $AGENT_URL -d 'Hello World!  '
 
 ## Using impt
 
