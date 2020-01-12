@@ -4,10 +4,6 @@ server.log("Device ID:      " + hardware.getdeviceid());
 server.log("Imp Type:       " + imp.info().type);
 server.log("Improm Version: " + imp.getsoftwareversion());
 
-repeat(2.0, function() {
-    server.log("Memory Free:    " + imp.getmemoryfree());
-});
-
 Width <- 32;
 Height <- 8;
 Offset <- 1;    // 1 extra for the impExplorer.
