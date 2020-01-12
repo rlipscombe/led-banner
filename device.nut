@@ -60,25 +60,36 @@ function generateBitPattern(rgb) {
 // It's not particularly interesting; it's just IRGB.
 // But see http://alumni.media.mit.edu/~wad/color/numbers.html, which *is* more interesting.
 WindowsPalette <- [
-    generateBitPattern([0x00, 0x00, 0x00]),     // Black
-    generateBitPattern([0x08, 0x00, 0x00]),     // Maroon
-    generateBitPattern([0x00, 0x08, 0x00]),     // Green
-    generateBitPattern([0x08, 0x08, 0x00]),     // Olive
-    generateBitPattern([0x00, 0x00, 0x08]),     // Navy
-    generateBitPattern([0x08, 0x00, 0x08]),     // Purple
-    generateBitPattern([0x00, 0x08, 0x08]),     // Teal
-    generateBitPattern([0x08, 0x08, 0x08]),     // Silver
-    generateBitPattern([0x10, 0x10, 0x10]),     // Gray
-    generateBitPattern([0x20, 0x00, 0x00]),     // Red
-    generateBitPattern([0x00, 0x20, 0x00]),     // Lime
-    generateBitPattern([0x20, 0x20, 0x00]),     // Yellow
-    generateBitPattern([0x00, 0x00, 0x20]),     // Blue
-    generateBitPattern([0x20, 0x00, 0x20]),     // Fuschia
-    generateBitPattern([0x00, 0x20, 0x20]),     // Aqua
-    generateBitPattern([0x20, 0x20, 0x20]),     // White
+    [0x00, 0x00, 0x00],     // Black
+    [0x08, 0x00, 0x00],     // Maroon
+    [0x00, 0x08, 0x00],     // Green
+    [0x08, 0x08, 0x00],     // Olive
+    [0x00, 0x00, 0x08],     // Navy
+    [0x08, 0x00, 0x08],     // Purple
+    [0x00, 0x08, 0x08],     // Teal
+    [0x08, 0x08, 0x08],     // Silver
+    [0x10, 0x10, 0x10],     // Gray
+    [0x20, 0x00, 0x00],     // Red
+    [0x00, 0x20, 0x00],     // Lime
+    [0x20, 0x20, 0x00],     // Yellow
+    [0x00, 0x00, 0x20],     // Blue
+    [0x20, 0x00, 0x20],     // Fuschia
+    [0x00, 0x20, 0x20],     // Aqua
+    [0x20, 0x20, 0x20],     // White
 ];
 
-_palette <- WindowsPalette;
+function convertPalette(palette) {
+    local result = [];
+
+    for (local i = 0; i < palette.len(); ++i) {
+        local value = palette[i];
+        result.push(generateBitPattern(value));
+    }
+
+    return result;
+}
+
+_palette <- convertPalette(WindowsPalette);
 _paletteLen <- _palette.len();
 
 // We need to write the whole frame out at once, for proper timings.
