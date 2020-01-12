@@ -94,16 +94,3 @@ server.log("Memory Free: " + imp.getmemoryfree());
 device.onconnect(function() {
     device.send("pattern", Pattern);
 });
-
-/*
-// At some point, this image blob will be sent from the agent.
-// It's in the same zig-zag format as the panel.
-ImageWidth <- 32;
-ImageHeight <- 8;
-
-// We use 4bpp colours, so there are two pixels per byte.
-_image <- blob(ImageWidth * ImageHeight / 2);
-for (local i = 0; i < _image.len(); ++i) {
-    _image.writen((3 << 4) | 5, 'b');    // Olive|Silver
-//    _image.writen((6 << 4) | 7, 'b');    // Teal|Silver
-}*/
