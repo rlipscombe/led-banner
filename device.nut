@@ -21,9 +21,7 @@ hardware.pin1.configure(DIGITAL_OUT, 1);
 _spi <- hardware.spi257;
 _spi.configure(MSB_FIRST, 7500);
 
-// To save space on the device, we store the source image in a blob, using
-// 4 bits per pixel. This allows us to pack 2 pixels per byte in the image.
-// This gives us a 16 colour palette.
+// The source image is 8 arrays, one per row, each cell containing a palette index.
 //
 // The WS2812 doesn't expect RGB; it expects a bit-banged pattern, so to
 // save an extra lookup, we store the pattern in the palette.
