@@ -1,0 +1,5 @@
+{
+  "deviceGroupId": "DEVICE_GROUP_UUID_HERE",
+  "deviceFile": "device.nut_",
+  "agentFile": "agent.nut_"
+}
