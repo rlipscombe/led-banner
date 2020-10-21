@@ -5,7 +5,7 @@ Pattern <- null;
 function postHome(context) {
     local message = context.req.rawbody;
     server.log(message);
-    Pattern = renderText(message + "      ", asciiTo5x8, 7, 0);
+    Pattern = renderText(message + "      ", asciiTo5x8, 11, 0);
     device.send("pattern", Pattern);
     context.send(202, "Accepted\n");
 }
