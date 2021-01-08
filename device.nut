@@ -24,7 +24,7 @@ _spi.configure(MSB_FIRST, 7500);
 
 // Generate the bit pattern for a particular RGB triple.
 // Each pattern is 24 bytes long (8 bytes per channel).
-function generateBitPattern(rgb) {
+function generateBitPattern(r, g, b) {
     local bits = blob(24);
 
     // Given the intensity of the R, G or B channel,
@@ -44,7 +44,7 @@ function generateBitPattern(rgb) {
     }
 
     // red and green are swapped
-    write(rgb[1]); write(rgb[0]); write(rgb[2]);
+    write(g); write(r); write(b);
 
     // rewind
     bits.seek(0, 'b');
@@ -79,13 +79,28 @@ function convertPalette(palette) {
 
     for (local i = 0; i < palette.len(); ++i) {
         local value = palette[i];
-        result.push(generateBitPattern(value));
+        result.push(generateBitPattern(value[0], value[1], value[2]));
+    }
+
+    return result;
+}
+
+function generatePalette() {
+    local result = [];
+
+    for (local b = 0; b < 0x20; b += 0x04) {
+        for (local g = 0; g < 0x20; g += 0x04) {
+            for (local r = 0; r < 0x20; r += 0x04) {
+                result.push(generateBitPattern(r, g, b));
+            }
+        }
     }
 
     return result;
 }
 
 _palette <- convertPalette(WindowsPalette);
+//_palette <- generatePalette();
 _paletteLen <- _palette.len();
 
 // We need to write the whole frame out at once, for proper timings.
@@ -183,9 +198,6 @@ class CycleColours {
     }
 };
 
-/*animation <- CycleColours();
-startAnimation(animation);*/
-
 class ScrollingImage {
     _image = null;
     _width = 0;
@@ -230,3 +242,6 @@ agent.on("pattern", function(image) {
     local animation = ScrollingImage(image);
     startAnimation(animation);
 });
+
+/*animation <- CycleColours();
+startAnimation(animation);*/
